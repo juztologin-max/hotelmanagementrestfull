@@ -8,7 +8,7 @@ out/
 .gradle/
 .lock
 .bin/
-
+*.p12
 !**/src/main/**/target/
 !**/src/test/**/target/
 !**/src/main/**/build/
