@@ -104,7 +104,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<excludeDevtools>false</excludeDevtools>
-					<fork>true</fork>
 					<addResources>true</addResources>
 				</configuration>
 			</plugin>

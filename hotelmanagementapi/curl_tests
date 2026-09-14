@@ -1,0 +1,14 @@
+curl -X POST http://localhost:8080/api/login \
+     -H "Content-Type: application/json" \
+     -d '{"username":"your_username", "password":"your_password"}' \
+     -c cookies.txt \
+     -v
+curl --json '{"username":"your_username", "password":"your_password"}' \
+    http://localhost:8080/api/login  \
+     -c cookies.txt \
+     -v
+
+
+curl -X POST http://localhost:8080/api/refresh \
+     -b cookies.txt \
+     -v

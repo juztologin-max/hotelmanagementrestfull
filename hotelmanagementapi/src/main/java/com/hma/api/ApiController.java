@@ -1,71 +1,102 @@
 package com.hma.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hma.api.authentication.JwtService;
+import com.hma.api.users.LoginUser;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
+// @CrossOrigin("") //for allowing react ui to access these endpoints
 public class ApiController {
-	private final AuthenticationManager authManager;
-	private final JwtService jwtService;
+    private final AuthenticationManager authManager;
+    private final JwtService jwtService;
 
-	public ApiController(AuthenticationManager authenticationManager, JwtService jwtService) {
-		this.authManager = authenticationManager;
-		this.jwtService = jwtService;
-	}
+    public ApiController(AuthenticationManager authenticationManager, JwtService jwtService) {
+        this.authManager = authenticationManager;
+        this.jwtService = jwtService;
+    }
 
-	@PostMapping("/login")
-	@ResponseStatus(HttpStatus.OK) // not needed as default is SUCCESS
-	public TokenResponceBody postLoginHandler(@RequestBody LoginData loginData) {
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-				loginData.username(), loginData.password(), null);
-		authManager.authenticate(authentication);
-		JwtService.JwtTokenContainer refreshTokenContainer = jwtService.generateRefreshToken(loginData.username());
-		JwtService.JwtTokenContainer accessTokenContainer = jwtService.generateAccessToken(loginData.username());
+    @PostMapping("/login")
+    // @ResponseStatus(HttpStatus.OK) // not needed as default is SUCCESS
+    public ResponseEntity<TokenResponseBody> postLoginHandler(@RequestBody LoginData loginData) {
+        UsernamePasswordAuthenticationToken unauthenticatedToken = new UsernamePasswordAuthenticationToken(
+                loginData.username(), loginData.password(), null);
+        Authentication authenticatedToken = authManager.authenticate(unauthenticatedToken);
+        LoginUser user = (LoginUser) authenticatedToken.getPrincipal();
+        Set<String> roles = user.getRoles().stream().map(r -> r.getRole().name()).collect(Collectors.toSet());
+        String refreshToken = jwtService.generateRefreshToken(loginData.username(), roles,
+                jwtService.getDefaultRefreshExpiration());
+        ResponseCookie responseCookie = ResponseCookie.from("refresh_cookie", refreshToken).httpOnly(true).secure(true)
+                .path("/api/auth")
+                .maxAge(jwtService.getDefaultRefreshExpiration()).sameSite("None").build();
 
-		return new TokenResponceBody(accessTokenContainer.token(), accessTokenContainer.expiration(),
-				refreshTokenContainer.token());
+        JwtService.JwtTokenContainer accessTokenContainer = jwtService.generateAccessToken(loginData.username(),
+                roles);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(new TokenResponseBody(accessTokenContainer.token(), accessTokenContainer.expiration()));
 
-	}
+    }
 
-	@PostMapping("/refresh")
-	@ResponseStatus(HttpStatus.OK)
-	public TokenResponceBody postRefreshHandler(@RequestBody RefreshTokenCarrier refreshCarrier) {
-		JwtService.JwtTokenContainer accessTokenContainer = jwtService
-				.generateAccessTokenFromRefreshToken(refreshCarrier.refreshToken());
-		return new TokenResponceBody(accessTokenContainer.token(), accessTokenContainer.expiration(),
-				refreshCarrier.refreshToken());
+    @PostMapping("/refresh")
+    // @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<TokenResponseBody> postRefreshHandler(
+            @CookieValue(value = "refresh_cookie", required = false) String refreshCookie) {
+        if (refreshCookie == null || refreshCookie.isBlank()) {
+            System.out.println("no CookieValue");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        System.out.println(refreshCookie);
+        JwtService.JwtTokenContainer accessTokenContainer = jwtService
+                .generateAccessTokenFromRefreshToken(refreshCookie);
 
-	}
+        return ResponseEntity.ok().body(
+                new TokenResponseBody(accessTokenContainer.token(), accessTokenContainer.expiration()));
 
-	@GetMapping("/login/test")
-	public String getLoginTestHandler() {
-		return "success";
-	}
+    }
+
+    @PostMapping("/logout")
+    // @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> postLogoutHandler() {
+        ResponseCookie newRefreshCookie = ResponseCookie.from("refresh_cookie", "").httpOnly(true).secure(true)
+                .path("/api/auth")
+                .maxAge(0).sameSite("None").build();
+        ;
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString()).build();
+
+    }
+
+    @GetMapping("/login/test")
+    public String getLoginTestHandler() {
+        return "success";
+    }
+
 }
 
-record LoginData(@JsonProperty(required = true) String username, @JsonProperty(required = true) String password) {
+record LoginData(@JsonProperty(value = "username", required = true) String username,
+        @JsonProperty(value = "password", required = true) String password) {
 }
 
-record RefreshTokenCarrier(@JsonProperty(value = "refresh_token", required = true) String refreshToken) {
-}
+record TokenResponseBody(@JsonProperty(value = "access_token", required = true) String accessToken,
+        @JsonProperty("token_type") String tokenType, @JsonProperty(value = "expires_in") long expiresIn) {
 
-record TokenResponceBody(@JsonProperty(value = "access_token", required = true) String accessToken,
-		@JsonProperty("token_type") String tokenType, @JsonProperty(value = "expires_in") long expiresIn,
-		@JsonProperty(value = "refresh_token", required = true) String refreshToken) {
-
-	TokenResponceBody(String accessToken, long expiresIn, String refreshToken) {
-		this(accessToken, "Bearer", expiresIn, refreshToken);
-	}
+    TokenResponseBody(String accessToken, long expiresIn) {
+        this(accessToken, "Bearer", expiresIn);
+    }
 }
 
 record ResponceBody(int status, String statusString, String message) {

@@ -16,7 +16,7 @@ public class UserRoles {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    Long id;
 
     // @Column(name = "role_name", columnDefinition =
     // "ENUM('ROLE_ADMIN','ROLE_STAFF','ROLE_CUSTOMER')", nullable = false, length =
@@ -38,6 +38,14 @@ public class UserRoles {
 
     public void setRole(UserRolesEnum role) {
         this.role = role;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 
 }

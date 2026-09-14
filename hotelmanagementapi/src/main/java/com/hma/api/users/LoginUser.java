@@ -25,68 +25,72 @@ import jakarta.persistence.Transient;
 @Entity
 public class LoginUser implements UserDetails {
 
-	@Transient
-	private static final long serialVersionUID = 1L;
+    @Transient
+    private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(name = "username", unique = true, nullable = false, length = 20)
-	private String username;
+    @Column(name = "username", unique = true, nullable = false, length = 20)
+    private String username;
 
-	@Column(name = "password", nullable = false, length = 80)
-	private String password;
+    @Column(name = "password", nullable = false, length = 80)
+    private String password;
 
-	@Column(name = "enabled", nullable = false)
-	private boolean enabled;
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
 
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "userdetails_userroles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-	Set<UserRoles> roles = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "userdetails_userroles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    Set<UserRoles> roles = new HashSet<>();
 
-	public Set<UserRoles> getRoles() {
-		return roles;
-	}
+    public Set<UserRoles> getRoles() {
+        return roles;
+    }
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return roles.stream().map(r -> r.getRole().name()).map(SimpleGrantedAuthority::new).toList();
-	}
+    public void setRoles(Set<UserRoles> roles) {
+        this.roles = roles;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream().map(r -> r.getRole().name()).map(SimpleGrantedAuthority::new).toList();
+    }
 
-	@Override
-	public @Nullable String getPassword() {
-		return password;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	@Override
-	public String getUsername() {
-		return username;
-	}
+    @Override
+    public @Nullable String getPassword() {
+        return password;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    @Override
+    public String getUsername() {
+        return username;
+    }
 
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	public Long getId() {
-		return id;
-	}
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
 }

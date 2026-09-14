@@ -1,4 +1,4 @@
-package com.hma.api;
+package com.hma.api.authentication;
 
 import java.io.IOException;
 
