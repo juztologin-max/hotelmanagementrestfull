@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Card, Form, Button, FloatingLabel, Alert } from "react-bootstrap";
 import HttpClient from "./httpClient.js";
 import useAuth from "./AuthContext.jsx";
 
@@ -35,26 +36,40 @@ export default function Login() {
     return null;
   }
   return (
-    <div>
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <br />
-        <input
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <div>{error && <div>{error}</div>}</div>
-        <button type="submit">Sign In</button>
-      </form>
-    </div>
+    <Container className="d-flex justify-content-center align-items-center min-vh-100">
+      <Card className="w-auto shadow-sm p-4">
+        <Card.Body>
+          <h2 className="text-center mb-4 font-weight-bold">Login</h2>
+          <Form onSubmit={handleLogin}>
+            <FloatingLabel controlId="username-floating-id" label="Username" className="mb-3">
+              <Form.Control
+                type="text"
+                placeholder="Type your username here"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </FloatingLabel>
+            <FloatingLabel controlId="password-floating-id" label="password" className="mb-3">
+              <Form.Control
+                type="password"
+                value={password}
+                placeholder="Type your password here"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </FloatingLabel>
+            {error && (
+              <Alert variant="danger" dismissible onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+            <Button variant="primary" type="submit" className="w-100">
+              Sign In
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }

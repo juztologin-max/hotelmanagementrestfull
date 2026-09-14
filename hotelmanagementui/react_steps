@@ -1,0 +1,7 @@
+npm create vite@latest secondproject -- --template react
+npm install react-router-dom
+npm install axios
+npm install jwt-decode
+npm install @vitejs/plugin-basic-ssl --save-dev
+npm install bootstrap
+npm install react-bootstrap
