@@ -24,21 +24,20 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.hma.api.authentication.JwtAuthenticationFilter;
-import com.hma.api.users.UserRepo;
 
 import jakarta.servlet.DispatcherType;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfiguration {
+public class BaseConfiguration {
 
     @Bean
     SecurityFilterChain getSecurityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
             AuthenticationEntryPoint authenticationEntryPoint, CorsConfigurationSource configurationSource) {
         //@formatter:off
 		return http.authorizeHttpRequests(auth -> 
-		                auth.requestMatchers("/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
+		                auth.requestMatchers("/api/auth/login","/api/auth/refresh","/api/auth/logout","/api/customers/new-customer","/api/auth/is-username-available").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
 		                    .requestMatchers("/api/auth/login/test").authenticated()
 		                    .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()     
@@ -56,12 +55,6 @@ public class SecurityConfiguration {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    UserDetailsService userDetailsService(UserRepo userRepo) {
-        return username -> userRepo.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException(username + " was not found"));
     }
 
     @Bean

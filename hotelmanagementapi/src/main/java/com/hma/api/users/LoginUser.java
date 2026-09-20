@@ -9,8 +9,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.hma.api.users.userroles.UserRoles;
+import com.hma.api.profile.Profile;
+import com.hma.api.users.userroles.UserRole;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,9 +22,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
 
-@Entity
+@Entity(name = "login_user")
 public class LoginUser implements UserDetails {
 
     @Transient
@@ -39,27 +42,93 @@ public class LoginUser implements UserDetails {
     private String password;
 
     @Column(name = "enabled", nullable = false)
-    private boolean enabled;
+    private boolean enabled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "userdetails_userroles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    Set<UserRoles> roles = new HashSet<>();
+    Set<UserRole> roles = new HashSet<>();
 
-    public Set<UserRoles> getRoles() {
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    Profile profile;
+
+    protected LoginUser() {
+    }
+
+    private LoginUser(String username, String password, boolean enabled, Set<UserRole> roles) {
+        this.username = username;
+        this.password = password;
+        this.enabled = enabled;
+        if (roles != null) {
+            this.roles.addAll(roles);
+        }
+    }
+
+    public static LoginUserBuilder builder(String username, String password) {
+        return new LoginUserBuilder(username, password);
+    }
+
+    public static class LoginUserBuilder {
+        private final String username;
+        private final String password;
+        private boolean enabled = true;
+        private Set<UserRole> roles = new HashSet<>();
+
+        public LoginUserBuilder(String username, String password) {
+            this.username = username;
+            this.password = password;
+        }
+
+        public LoginUserBuilder enable() {
+            this.enabled = true;
+            return this;
+        }
+
+        public LoginUserBuilder disable() {
+            this.enabled = false;
+            return this;
+        }
+
+        public LoginUserBuilder addRole(UserRole role) {
+            roles.add(role);
+            return this;
+        }
+
+        public LoginUserBuilder addAllRoles(Set<UserRole> roles) {
+            this.roles = roles;
+            return this;
+        }
+
+        public LoginUser build() {
+            return new LoginUser(username, password, enabled, roles);
+        }
+
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Set<UserRole> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<UserRoles> roles) {
+    public void setRoles(Set<UserRole> roles) {
         this.roles = roles;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream().map(r -> r.getRole().name()).map(SimpleGrantedAuthority::new).toList();
+    public Profile getProfile() {
+        return profile;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setProfile(Profile profile) {
+        if (profile == null) {
+            if (this.profile != null) {
+                this.profile.setUser(null);
+            }
+        } else {
+            profile.setUser(this);
+        }
+        this.profile = profile;
     }
 
     @Override
@@ -67,13 +136,13 @@ public class LoginUser implements UserDetails {
         return password;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     @Override
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     @Override
@@ -85,12 +154,9 @@ public class LoginUser implements UserDetails {
         this.enabled = enabled;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream().map(r -> r.getRole().name()).map(SimpleGrantedAuthority::new).toList();
     }
 
 }

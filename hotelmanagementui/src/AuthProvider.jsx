@@ -30,6 +30,7 @@ export default function AuthProvider({ children }) {
     } catch (e) {
       console.log("Failed to clear cookie" + e);
     } finally {
+      console.log("logout");
       setAuth({ token: null, loginUser: null });
     }
   }, []);
@@ -68,7 +69,6 @@ export default function AuthProvider({ children }) {
         if (axios.isCancel(err)) {
           return;
         }
-        if (isMounted) logout();
       } finally {
         if (isMounted) setLoading(false);
       }

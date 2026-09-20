@@ -8,8 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
-@Entity
-public class UserRoles {
+@Entity(name = "user_roles")
+public class UserRole {
     public enum UserRolesEnum {
         ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER
     }
@@ -25,11 +25,15 @@ public class UserRoles {
     @Column(name = "role_name", nullable = false, length = 20)
     UserRolesEnum role;
 
-    public UserRoles() {
+    public UserRole() {
     }
 
-    public UserRoles(UserRolesEnum role) {
+    public UserRole(UserRolesEnum role) {
         this.role = role;
+    }
+
+    public UserRole(String user) {
+        this(UserRolesEnum.valueOf(user));
     }
 
     public UserRolesEnum getRole() {

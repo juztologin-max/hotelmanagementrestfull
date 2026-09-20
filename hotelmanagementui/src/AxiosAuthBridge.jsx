@@ -10,13 +10,13 @@ export default function AxiosAuthBridge({ children }) {
   }, [login, logout, token]);
 
   useEffect(() => {
-    const exclusionList = ["/auth/login", "/auth/refresh", "/auth/logout"];
+    const accessTokenExclusionList = ["/auth/login", "/auth/refresh", "/auth/logout"];
     const requestInterceptor = HttpClient.interceptors.request.use((config) => {
       const currentPath = config.url || "";
-      const needsAuthorization = !exclusionList.some((pattern) =>
+      const needsAuthorization = !accessTokenExclusionList.some((pattern) =>
         matchPath({ path: pattern, end: true }, currentPath),
       );
-      console.log(currentPath, needsAuthorization);
+      //console.log(currentPath, needsAuthorization);
       if (needsAuthorization && authRef.current.token) {
         config.headers.Authorization = "Bearer " + authRef.current.token;
       }
@@ -28,7 +28,7 @@ export default function AxiosAuthBridge({ children }) {
         const origReq = error.config;
         const origStatus = error.response?.status;
         if (origReq?.url?.includes("/auth/refresh")) {
-          console.log(error.message);
+          console.log(origReq?.url + " " + error.message);
           if (error.message !== "canceled") {
             console.log("calling logout because /auth/refresh failed");
             authRef.current.logout();

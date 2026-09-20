@@ -1,35 +1,106 @@
-import { NavLink } from "react-router-dom";
-import Container from "react-bootstrap/Container";
-import Nav from "react-bootstrap/Nav";
-import Navbar from "react-bootstrap/Navbar";
-import NavDropdown from "react-bootstrap/NavDropdown";
-import useAuth from "../AuthContext.jsx";
+import { NavLink } from "react-router";
+import { Link } from "react-router-dom";
+import { MenuIcon, LogOut, User, Settings, CreditCard, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription,
+  SheetHeader,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const AdminHeader = () => {
+import useAuth from "@/AuthContext";
+
+export default function Header() {
   const { logout, loginUser } = useAuth();
+  const linkStyles = ({ isActive }) =>
+    `text-sm font-medium transition-colors hover:text-foreground/80 ${
+      isActive ? "text-foreground font-semibold" : "text-foreground/60"
+    }`;
 
   return (
-    <Navbar expand="lg" className="bg-body-terirary border-bottom">
-      <Container>
-        <Navbar.Brand as={NavLink} to="/admin/dashboard">
-          Home
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="admin-header-nav-id">
-          <Nav>
-            <Nav.Link as={NavLink} onClick={logout}>
-              Logout
-            </Nav.Link>{" "}
-          </Nav>
-        </Navbar.Collapse>
-        <NavDropdown title={loginUser.username} id="profile-dropdown-id">
-          <NavDropdown.Item as={NavLink} onClick={logout}>
-            Logout
-          </NavDropdown.Item>
-        </NavDropdown>
-      </Container>
-    </Navbar>
-  );
-};
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-14 items-center justify-between">
+        <div className="flex items-center space-x-6">
+          <NavLink to="/" className="font-bold">
+            Hotel
+          </NavLink>
+          <nav className="hidden md:flex items-center space-x-6">
+            <NavLink to="/" className={linkStyles}>
+              Home
+            </NavLink>
+          </nav>
+        </div>
 
-export default AdminHeader;
+        <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center ">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar>
+                      <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
+                      <AvatarFallback>
+                        {loginUser.username.toUpperCase().substring(0, 1)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                }
+              />
+              <DropdownMenuContent className="w-32">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem>Billing</DropdownMenuItem>
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem variant="destructive" onClick={logout}>
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex md:hidden">
+            <Sheet>
+              <SheetTrigger>
+                <Button variant="ghost">
+                  <Menu />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Navigation</SheetTitle>
+                </SheetHeader>
+                <Link to="/">Home</Link>
+                <SheetFooter>
+                  <Button variant="destructive" onClick={logout}>
+                    Log out
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

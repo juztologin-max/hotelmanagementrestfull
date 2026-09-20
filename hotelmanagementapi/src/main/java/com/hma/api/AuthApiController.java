@@ -3,6 +3,10 @@ package com.hma.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hma.api.authentication.JwtService;
 import com.hma.api.users.LoginUser;
+import com.hma.api.users.UserService;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpHeaders;
@@ -22,13 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 // @CrossOrigin("") //for allowing react ui to access these endpoints
-public class ApiController {
+public class AuthApiController {
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
+    private final UserService userService;
 
-    public ApiController(AuthenticationManager authenticationManager, JwtService jwtService) {
+    public AuthApiController(AuthenticationManager authenticationManager, JwtService jwtService,
+            UserService userService) {
         this.authManager = authenticationManager;
         this.jwtService = jwtService;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -43,7 +50,7 @@ public class ApiController {
                 jwtService.getDefaultRefreshExpiration());
         ResponseCookie responseCookie = ResponseCookie.from("refresh_cookie", refreshToken).httpOnly(true).secure(true)
                 .path("/api/auth")
-                .maxAge(jwtService.getDefaultRefreshExpiration()).sameSite("None").build();
+                .maxAge(jwtService.getDefaultRefreshExpiration()).sameSite("Lax").partitioned(true).build();
 
         JwtService.JwtTokenContainer accessTokenContainer = jwtService.generateAccessToken(loginData.username(),
                 roles);
@@ -74,9 +81,18 @@ public class ApiController {
     public ResponseEntity<Void> postLogoutHandler() {
         ResponseCookie newRefreshCookie = ResponseCookie.from("refresh_cookie", "").httpOnly(true).secure(true)
                 .path("/api/auth")
-                .maxAge(0).sameSite("None").build();
+                .maxAge(0).sameSite("Lax").partitioned(true).build();
         ;
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString()).build();
+
+    }
+
+    @PostMapping("/is-username-available")
+    // @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Map<String, Boolean>> postLogoutHandler(@RequestBody Map<String, String> rMap) {
+        Map<String, Boolean> response = new HashMap<>();
+        response.put(rMap.get("username"), !userService.doesUsernameExist(rMap.get("username")));
+        return ResponseEntity.ok().body(response);
 
     }
 

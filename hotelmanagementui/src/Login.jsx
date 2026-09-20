@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, Card, Form, Button, FloatingLabel, Alert } from "react-bootstrap";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+
 import HttpClient from "./httpClient.js";
 import useAuth from "./AuthContext.jsx";
 
@@ -36,40 +40,54 @@ export default function Login() {
     return null;
   }
   return (
-    <Container className="d-flex justify-content-center align-items-center min-vh-100">
-      <Card className="w-auto shadow-sm p-4">
-        <Card.Body>
-          <h2 className="text-center mb-4 font-weight-bold">Login</h2>
-          <Form onSubmit={handleLogin}>
-            <FloatingLabel controlId="username-floating-id" label="Username" className="mb-3">
-              <Form.Control
-                type="text"
-                placeholder="Type your username here"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </FloatingLabel>
-            <FloatingLabel controlId="password-floating-id" label="password" className="mb-3">
-              <Form.Control
-                type="password"
-                value={password}
-                placeholder="Type your password here"
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </FloatingLabel>
-            {error && (
-              <Alert variant="danger" dismissible onClose={() => setError(null)}>
-                {error}
-              </Alert>
-            )}
-            <Button variant="primary" type="submit" className="w-100">
-              Sign In
-            </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </Container>
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-sm flex flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Login to your account</CardTitle>
+            <CardDescription>Enter your email below to login to your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin}>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="username">Username</FieldLabel>
+                  <Input
+                    id="username"
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(t) => setUsername(t.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <div className="flex items-center">
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <Link
+                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                      to="/forgot-password"
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    onChange={(t) => setPassword(t.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Button type="submit">Login</Button>
+                  <FieldDescription className="text-center">
+                    {"Don't have an account?"} <Link to="/signup">Sign Up</Link>
+                  </FieldDescription>
+                </Field>
+              </FieldGroup>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

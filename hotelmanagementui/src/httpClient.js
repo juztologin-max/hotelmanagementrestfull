@@ -1,4 +1,4 @@
 import axios from "axios";
-const HttpClient = axios.create({ baseURL: "https://localhost:8443/api", withCredentials: true });
+const HttpClient = axios.create({ baseURL: "/api", withCredentials: true });
 
 export default HttpClient;

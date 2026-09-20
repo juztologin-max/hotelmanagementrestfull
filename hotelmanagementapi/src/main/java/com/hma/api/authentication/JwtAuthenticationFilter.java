@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.hma.api.users.LoginUser;
-import com.hma.api.users.userroles.UserRoles;
+import com.hma.api.users.userroles.UserRole;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -29,8 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     AuthenticationEntryPoint authenticationEntryPoint;
 
-    public JwtAuthenticationFilter(JwtService jwtService,
-            AuthenticationEntryPoint authenticationEntryPoint) {
+    public JwtAuthenticationFilter(JwtService jwtService, AuthenticationEntryPoint authenticationEntryPoint) {
         this.jwtService = jwtService;
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
@@ -55,16 +54,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 new BadCredentialsException("Incorrect Token type"));
                         return;
                     }
-                    // UserDetails user =
-                    // userDetailsService.loadUserByUsername(claims.getSubject());
                     List<?> claimsList = claims.get("roles", List.class);
-                    Set<UserRoles> roles = claimsList.stream()
-                            .map((Object o) -> new UserRoles(
-                                    UserRoles.UserRolesEnum.valueOf(o.toString().toUpperCase())))
+                    Set<UserRole> roles = claimsList.stream()
+                            .map((Object o) -> new UserRole(o.toString().toUpperCase()))
                             .collect(Collectors.toSet());
-                    LoginUser user = new LoginUser();
-                    user.setUsername(claims.getSubject());
-                    user.setRoles(roles);
+                    LoginUser user = LoginUser.builder(claims.getSubject(), null).addAllRoles(roles).build();
 
                     UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken
                             .authenticated(user, null, user.getAuthorities());

@@ -1,18 +1,5 @@
 package com.hma.api.admin;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.hma.api.authentication.JwtService;
-import com.hma.api.users.LoginUser;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,4 +15,12 @@ public class AdminController {
         return "success";
     }
 
+    @PostMapping("/test")
+    public String postLoginTestdHandler(@RequestBody TestWithIdContainer idContainer) {
+        return idContainer.id();
+    }
+
+}
+
+record TestWithIdContainer(String id) {
 }

@@ -4,4 +4,33 @@ npm install axios
 npm install jwt-decode
 npm install @vitejs/plugin-basic-ssl --save-dev
 npm install bootstrap
-npm install react-bootstrap
+--npm install react-bootstrap
+npm install react-hook-form
+npm install tailwindcss @tailwindcss/vite
+npm install react-hook-form @hookform/resolvers zod
+import path from "path"
+import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite"
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"), // Maps @ to your src folder
+    },
+  },
+})
+
+jsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+
+@import "tailwindcss";
+npm x -- shadcn@latest add card button input label
+
