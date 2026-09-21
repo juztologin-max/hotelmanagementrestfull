@@ -1,6 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Field,
   FieldSet,
@@ -11,12 +19,17 @@ import {
   FieldLegend,
   FieldSeparator,
 } from "@/components/ui/field";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import HttpClient from "@/httpClient";
 const Signup = () => {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(null);
+
   const schema = z
     .object({
       username: z
@@ -42,17 +55,15 @@ const Signup = () => {
         .min(1, "Required")
         .regex(/^[6-9]\d{9}$/, "Like 9876543210"),
       dob: z
-        .string()
-        .trim()
-        .min(1, "Required")
-        .pipe(z.coerce.date({ invalid_type_error: "Invalid date format" }))
+        .any()
+        .refine((v) => v instanceof Date, { message: "Required" })
         .refine(
           (d) => {
             const today = new Date();
             const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
             return d <= minDate;
           },
-          { message: "Must be atleast 18 years old" },
+          { message: "Must be at least 18 years old" },
         ),
       fullname: z
         .string()
@@ -71,8 +82,23 @@ const Signup = () => {
     handleSubmit,
     setError,
     clearErrors,
+    control,
     formState: { errors, isValid, isSubmitting },
-  } = useForm({ resolver: zodResolver(schema), mode: "onChange" });
+  } = useForm({
+    resolver: zodResolver(schema),
+    mode: "onChange",
+    defaultValues: {
+      username: "",
+      password: "",
+      confirmPassword: "",
+      fullname: "",
+      aadhar: "",
+      address: "",
+      email: "",
+      phone: "",
+      dob: null,
+    },
+  });
 
   const signupHandler = async (data) => {
     try {
@@ -86,7 +112,7 @@ const Signup = () => {
         setError("username", { type: "manual", message: "Username unavailable" });
         return;
       }
-
+      return;
       const resp = await HttpClient.post("/customers/new-customer", {
         username: username,
         password: password,
@@ -105,59 +131,69 @@ const Signup = () => {
     }
   };
 
-  const usernameProps = register("username");
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <Card className="w-full  max-w-sm shadow-mg">
         <CardContent>
           <div className="w-full ">
-            <form onSubmit={handleSubmit(signupHandler)}>
+            <form id="signup-form-id" onSubmit={handleSubmit(signupHandler)}>
               <FieldGroup>
                 <FieldSet>
                   <FieldLegend>Login Details</FieldLegend>
+                  <FieldDescription>
+                    Please enter your desired username and password
+                  </FieldDescription>
                   <FieldGroup>
-                    <Field data-invalid={errors.username != null}>
-                      <FieldLabel htmlFor="name">username</FieldLabel>
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="John Doe"
-                        autoComplete="off"
-                        required
-                        {...usernameProps}
-                        onChange={(e) => {
-                          usernameProps.onChange(e);
-                          clearErrors("username");
-                        }}
-                        aria-invalid={errors.username ? "true" : "false"}
-                      />
-                      {errors.username && <FieldError>{errors.username?.message}</FieldError>}
-                    </Field>
+                    <Controller
+                      name="username"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="username">username</FieldLabel>
+                          <Input
+                            {...field}
+                            id="username"
+                            aria-invalid={fieldState.invalid}
+                            autoComplete="off"
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
                     <div className="grid grid-cols-2 gap-4">
-                      <Field data-invalid={errors.password != null}>
-                        <FieldLabel htmlFor="password">Password</FieldLabel>
-                        <Input
-                          id="password"
-                          type="password"
-                          required
-                          aria-invalid={errors.password != null}
-                          {...register("password", { deps: ["confirmPassword"] })}
-                        />
-                        {errors.password && <FieldError>{errors.password?.message}</FieldError>}
-                      </Field>
-                      <Field data-invalid={errors.confirmPassword != null}>
-                        <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
-                        <Input
-                          id="confirm-password"
-                          type="password"
-                          required
-                          aria-invalid={errors.confirmPassword != null}
-                          {...register("confirmPassword")}
-                        />
-                        {errors.confirmPassword && (
-                          <FieldError>{errors.confirmPassword?.message}</FieldError>
+                      <Controller
+                        name="password"
+                        control={control}
+                        rules={{ deps: ["confirmPassword"] }}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor="password">password</FieldLabel>
+                            <Input
+                              {...field}
+                              type="password"
+                              id="password"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
                         )}
-                      </Field>
+                      />
+                      <Controller
+                        name="confirmPassword"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor="confirmPassword">confirm password</FieldLabel>
+                            <Input
+                              {...field}
+                              type="password"
+                              id="confirmPassword"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
                     </div>
                   </FieldGroup>
                 </FieldSet>
@@ -165,89 +201,141 @@ const Signup = () => {
                   <FieldLegend>Profile</FieldLegend>
                   <FieldDescription>Please fill in your biographical details</FieldDescription>
                   <FieldGroup>
-                    <Field data-invalid={errors.fullname != null}>
-                      <FieldLabel htmlFor="fullname">Full Name</FieldLabel>
-                      <Input
-                        id="fullname"
-                        type="text"
-                        required
-                        {...register("fullname")}
-                        aria-invalid={errors.fullname != null}
-                      />
-                      {errors.fullname && <FieldError>{errors.fullname?.message}</FieldError>}
-                    </Field>
-
-                    <Field data-invalid={errors.aadhar != null}>
-                      <FieldLabel htmlFor="aadhar">Aadhar</FieldLabel>
-                      <Input
-                        id="aadhar"
-                        type="text"
-                        required
-                        {...register("aadhar")}
-                        aria-invalid={errors.aadhar != null}
-                      />
-                      {errors.aadhar && <FieldError>{errors.aadhar?.message}</FieldError>}
-                    </Field>
-                    <Field data-invalid={errors.address != null}>
-                      <FieldLabel htmlFor="address">Address</FieldLabel>
-                      <Input
-                        id="address"
-                        type="text"
-                        required
-                        {...register("address")}
-                        aria-invalid={errors.address != null}
-                      />
-                      {errors.address && <FieldError>{errors.address?.message}</FieldError>}
-                    </Field>
-                    <Field data-invalid={errors.email != null}>
-                      <FieldLabel htmlFor="email">Email</FieldLabel>
-                      <Input
-                        id="email"
-                        type="email"
-                        required
-                        {...register("email")}
-                        aria-invalid={errors.email != null}
-                      />
-                      {errors.email && <FieldError>{errors.email?.message}</FieldError>}
-                    </Field>
+                    <Controller
+                      name="fullname"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="fullname">fullname</FieldLabel>
+                          <Input {...field} id="fullname" aria-invalid={fieldState.invalid} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="aadhar"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="aadhar">aadhar</FieldLabel>
+                          <Input {...field} id="aadhar" aria-invalid={fieldState.invalid} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="address"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="address">address</FieldLabel>
+                          <Input {...field} id="address" aria-invalid={fieldState.invalid} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="email"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="email">Email</FieldLabel>
+                          <Input
+                            {...field}
+                            type="email"
+                            id="email"
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
                     <div className="grid grid-cols-2 gap-4">
-                      <Field data-invalid={errors.phone != null}>
-                        <FieldLabel htmlFor="phone">Mobile Phone No.</FieldLabel>
-                        <Input
-                          id="phone"
-                          type="text"
-                          required
-                          {...register("phone")}
-                          aria-invalid={errors.phone != null}
-                        />
-                        {errors.phone && <FieldError>{errors.phone?.message}</FieldError>}
-                      </Field>
-                      <Field data-invalid={errors.dob != null}>
-                        <FieldLabel htmlFor="dob">DOB</FieldLabel>
-                        <Input
-                          id="dob"
-                          type="date"
-                          required
-                          {...register("dob")}
-                          aria-invalid={errors.dob != null}
-                        />
-                        {errors.dob && <FieldError>{errors.dob?.message}</FieldError>}
-                      </Field>
+                      <Controller
+                        name="phone"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor="phone">Phone</FieldLabel>
+                            <Input {...field} id="phone" aria-invalid={fieldState.invalid} />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+
+                      <Controller
+                        name="dob"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor="dob">Date of Birth</FieldLabel>
+                            <Popover open={open} onOpenChange={setOpen}>
+                              <PopoverTrigger
+                                render={
+                                  <Button
+                                    variant="outline"
+                                    id="dob"
+                                    className="justify-start font-normal"
+                                  >
+                                    {field.value ? field.value.toLocaleDateString() : "Select date"}
+                                  </Button>
+                                }
+                              />
+                              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value || undefined}
+
+                                  startMonth={new Date(new Date().getFullYear() - 100, 0)}
+                                  endMonth={
+                                    new Date(new Date().getFullYear() - 18, new Date().getMonth())
+                                  }
+
+                                  disabled={[
+                                    { before: new Date(new Date().getFullYear() - 100, 0, 1) },
+                                    {
+                                      after: new Date(
+                                        new Date().getFullYear() - 18,
+                                        new Date().getMonth(),
+                                        new Date().getDate(),
+                                      ),
+                                    },
+                                  ]}
+                                  defaultMonth={
+                                    field.value ||
+                                    (() => {
+                                      return new Date(new Date().getFullYear() - 18, 0, 1);
+                                    })()
+                                  }
+                                  captionLayout="dropdown"
+                                  onSelect={(date) => {
+                                    field.onChange(date);
+                                    setOpen(false);
+                                  }}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
                     </div>
-                    <Field>
-                      <Button type="submit" disabled={!isValid || isSubmitting}>
-                        Create Account
-                      </Button>
-                      <FieldDescription className="px-6 text-center">
-                        Already have an account? <Link to="/">Sign in</Link>
-                      </FieldDescription>
-                    </Field>
                   </FieldGroup>
                 </FieldSet>
               </FieldGroup>
             </form>
           </div>
         </CardContent>
+        <CardFooter>
+          <Field>
+            <Button type="submit" disabled={!isValid || isSubmitting} form="signup-form-id">
+              Create Account
+            </Button>
+            <FieldDescription className="px-6 text-center">
+              Already have an account? <Link to="/">Sign in</Link>
+            </FieldDescription>
+          </Field>
+        </CardFooter>
       </Card>
     </div>
   );

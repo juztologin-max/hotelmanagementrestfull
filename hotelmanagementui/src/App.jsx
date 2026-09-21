@@ -5,6 +5,7 @@ import AuthProvider from "./AuthProvider.jsx";
 import DashboardRedirector from "./DashboardRedirector.jsx";
 
 import AdminRoutes from "./admin/AdminRoutes.jsx";
+import CustomerRoutes from "./customers/CustomerRoutes.jsx";
 import AxiosAuthBridge from "./AxiosAuthBridge.jsx";
 const AppRoutes = () => {
   return (
@@ -14,6 +15,7 @@ const AppRoutes = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/redirector" element={<DashboardRedirector />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
+        <Route path="/customer/*" element={<CustomerRoutes />} />
       </Routes>
     </Router>
   );

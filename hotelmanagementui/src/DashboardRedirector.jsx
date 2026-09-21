@@ -10,6 +10,8 @@ const DashBoardRedirector = () => {
     if (loginUser) {
       if (loginUser.roles.includes("ROLE_ADMIN")) {
         navigate("/admin/dashboard", { replace: true });
+      } else if (loginUser.roles.includes("ROLE_CUSTOMER")) {
+        navigate("/customer/dashboard", { replace: true });
       }
     } else {
       navigate("/", { replace: true });

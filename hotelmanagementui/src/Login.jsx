@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
@@ -48,7 +55,7 @@ export default function Login() {
             <CardDescription>Enter your email below to login to your account</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} id="login-form-id">
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="username">Username</FieldLabel>
@@ -77,15 +84,19 @@ export default function Login() {
                     onChange={(t) => setPassword(t.target.value)}
                   />
                 </Field>
-                <Field>
-                  <Button type="submit">Login</Button>
-                  <FieldDescription className="text-center">
-                    {"Don't have an account?"} <Link to="/signup">Sign Up</Link>
-                  </FieldDescription>
-                </Field>
               </FieldGroup>
             </form>
           </CardContent>
+          <CardFooter>
+            <Field>
+              <Button type="submit" form="login-form-id">
+                Login
+              </Button>
+              <FieldDescription className="text-center">
+                {"Don't have an account?"} <Link to="/signup">Sign Up</Link>
+              </FieldDescription>
+            </Field>
+          </CardFooter>
         </Card>
       </div>
     </div>
