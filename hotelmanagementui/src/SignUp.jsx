@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,8 +28,7 @@ import { z } from "zod";
 import HttpClient from "@/httpClient";
 const Signup = () => {
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState(null);
-
+  const navigate = useNavigate();
   const schema = z
     .object({
       username: z
@@ -112,7 +111,7 @@ const Signup = () => {
         setError("username", { type: "manual", message: "Username unavailable" });
         return;
       }
-      return;
+
       const resp = await HttpClient.post("/customers/new-customer", {
         username: username,
         password: password,
@@ -129,6 +128,7 @@ const Signup = () => {
     } catch (e) {
       console.log(e);
     }
+    navigate("/", { replace: true });
   };
 
   return (

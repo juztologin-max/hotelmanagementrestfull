@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { MenuIcon, LogOut, User, Settings, CreditCard, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,7 @@ import useAuth from "@/AuthContext";
 
 export default function Header() {
   const { logout, loginUser } = useAuth();
+  const navigate = useNavigate();
   const linkStyles = ({ isActive }) =>
     `text-sm font-medium transition-colors hover:text-foreground/80 ${
       isActive ? "text-foreground font-semibold" : "text-foreground/60"
@@ -81,16 +82,20 @@ export default function Header() {
 
           <div className="flex md:hidden">
             <Sheet>
-              <SheetTrigger>
-                <Button variant="ghost">
-                  <Menu />
-                </Button>
-              </SheetTrigger>
+              <SheetTrigger
+                render={
+                  <Button variant="ghost">
+                    <Menu />
+                  </Button>
+                }
+              ></SheetTrigger>
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>Navigation</SheetTitle>
                 </SheetHeader>
-                <Link to="/">Home</Link>
+
+                <Button onClick={() => navigate("/")}>Home</Button>
+
                 <SheetFooter>
                   <Button variant="destructive" onClick={logout}>
                     Log out

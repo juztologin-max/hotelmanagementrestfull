@@ -37,7 +37,7 @@ export default function Login() {
         password: password,
       });
       login(response.data.access_token);
-      navigate("/redirector");
+      navigate("/redirector", { replace: true });
     } catch (error) {
       setError("Invalid credentials" + error.message);
       console.log(error);
